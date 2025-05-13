@@ -4,21 +4,35 @@
 #include <cstdlib>
 #include <ctime>
 
-
 using namespace std;
 
 template<typename T, size_t N> struct Input { T input[N] = {}; };
 
+template<typename T, size_t N> struct Side { T values[N]; };
+
 template<typename T, size_t N>
-struct Side {
-    T values[N];
-};
+void safe_cin(Input<T, N>& input) {
+    while (true) {
+        cin.get(input.input, N);
+        if (cin.fail()) {
+            cin.clear(); // Clears error flags.
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+            cout << "Invalid input. Please try again: ";
+        } else if (input.input[0] == '\0') {
+            cout << "No input detected. Please enter a command: ";
+        } else {
+            cin.ignore(numeric_limits<streamsize>::max(), '\n'); 
+            break;
+        }
+    }
+}
 
 template<typename T, size_t N, size_t S> 
 class Cube { 
     unsigned int side;
     Side<T, N> sides[S];
-    
+    Input<char, 3> input;
+
     public:
         Cube() {
             this->side = 0;
@@ -56,7 +70,7 @@ class Cube {
                 cout << endl;
                 cout << "Face " << i;
                 for (int j = 0; j < N; ++j) {
-                    if (!(j%3)) cout << endl;
+                    if (!(j%sqrt(S))) cout << endl;
                     cout << this->sides[i].values[j] << " ";
                 }
                 cout << endl;
@@ -65,7 +79,7 @@ class Cube {
 
         void print_side() {
             for (int j = 0; j < N; ++j) {
-                if (!(j%3)) cout << endl;
+                if (!(j%sqrt(S))) cout << endl;
                 cout << sides[side].values[j] << " ";
             }
             cout << endl;
@@ -79,7 +93,6 @@ class Cube {
                         this->side = 0;
                     }
                     cout << "Side: " << this->side << endl;
-
                     break;
                 default:
                     this->side = this->side ? --this->side : 5;
@@ -88,8 +101,8 @@ class Cube {
             }
         }
 
-        template<typename I, size_t I_N>
-        void executor(Input<I, I_N>& input) {
+        void executor() {
+            safe_cin(input);
             if (input.input[0] == 'h') {
                 cout << "The usage is SN, Where S is the direction, and N is the column/row number starting from the top left.\nTS can be used to rotate the side facing you where S is the direction.\nValid directions are: U, D, L, R." << endl;
                 cin.get();
@@ -100,23 +113,6 @@ class Cube {
         }
 };
 
-template<typename T, size_t N>
-void safe_cin(Input<T, N>& input) {
-    while (true) {
-        cin.get(input.input, N);
-        if (cin.fail()) {
-            cin.clear(); // Clears error flags.
-            cin.ignore(numeric_limits<streamsize>::max(), '\n');
-            cout << "Invalid input. Please try again: ";
-        } else if (input.input[0] == '\0') {
-            cout << "No input detected. Please enter a command: ";
-        } else {
-            cin.ignore(numeric_limits<streamsize>::max(), '\n'); 
-            break;
-        }
-    }
-}
-
 int main() {
     srand(static_cast<unsigned>(time(nullptr)));
     
@@ -125,7 +121,6 @@ int main() {
     int side = 0;
 
     Cube<int, area, sides> cube;
-    Input<char, 3> input;
 
     cube.init();
     cube.shuffle();
@@ -138,9 +133,7 @@ int main() {
         
         cout << "Command(type h for reference sheet): ";
         
-        safe_cin(input);
-
-        cube.executor(input);
+        cube.executor();
     }
 
     return 0;
